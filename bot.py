@@ -7,7 +7,9 @@ bot = telebot.TeleBot(TOKEN)
 
 @bot.message_handler(func=lambda message: True)
 def handle_youtube_link(message):
-    url = message.text
+    # تنظيف الرابط من أي إضافات تتبع تخربط التحميل
+    url = message.text.split('?')[0] 
+    
     if 'youtube.com' not in url and 'youtu.be' not in url:
         bot.reply_to(message, "❌ عذراً، يرجى إرسال رابط يوتيوب صالح.")
         return
@@ -17,9 +19,9 @@ def handle_youtube_link(message):
     output_template = f"video_{message.chat.id}.mp4"
     cookie_path = os.path.join(os.getcwd(), 'cookies.txt')
     
-    # الحل هنا: استخدام صيغة مدمجة جاهزة لا تحتاج لدمج أو ffmpeg
+    # استخدام 'best' كحل نهائي لسحب الملف الجاهز
     ydl_opts = {
-        'format': 'b',
+        'format': 'best',
         'outtmpl': output_template,
         'no_warnings': True,
         'cookiefile': cookie_path,
