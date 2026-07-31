@@ -7,21 +7,19 @@ bot = telebot.TeleBot(TOKEN)
 
 @bot.message_handler(func=lambda message: True)
 def handle_youtube_link(message):
-    # تنظيف الرابط من أي إضافات تتبع تخربط التحميل
     url = message.text.split('?')[0] 
     
     if 'youtube.com' not in url and 'youtu.be' not in url:
         bot.reply_to(message, "❌ عذراً، يرجى إرسال رابط يوتيوب صالح.")
         return
 
-    status_msg = bot.reply_to(message, "⏳ جاري التحميل...")
+    status_msg = bot.reply_to(message, "⏳ جاري التحميل بأعلى جودة...")
     
     output_template = f"video_{message.chat.id}.mp4"
     cookie_path = os.path.join(os.getcwd(), 'cookies.txt')
     
-    # استخدام 'best' كحل نهائي لسحب الملف الجاهز
     ydl_opts = {
-        'format': 'best',
+        'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
         'outtmpl': output_template,
         'no_warnings': True,
         'cookiefile': cookie_path,
@@ -38,7 +36,7 @@ def handle_youtube_link(message):
         if not os.path.exists(final_file) and os.path.exists(output_template + ".mp4"):
             final_file = output_template + ".mp4"
 
-        bot.edit_message_text("📤 جاري الرفع...", chat_id=message.chat.id, message_id=status_msg.message_id)
+        bot.edit_message_text("📤 جاري الرفع إلى تيليجرام...", chat_id=message.chat.id, message_id=status_msg.message_id)
 
         with open(final_file, 'rb') as video_file:
             bot.send_video(message.chat.id, video_file)
