@@ -14,46 +14,35 @@ def handle_youtube_link(message):
 
     status_msg = bot.reply_to(message, "⏳ جاري تحميل الفيديو عبر السيرفر...")
     
-    output_file = f"video_{message.chat.id}.mp4"
+    output_template = f"video_{message.chat.id}.mp4"
     
     ydl_opts = {
         'format': 'best[ext=mp4]/best',
-        'outtmpl': output_file,
+        'outtmpl': output_template,
         'no_warnings': True,
-        'quiet': True,
+        'http_headers': {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        }
     }
 
     try:
-        # تحميل الفيديو
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([url])
 
-        # التحقق من اسم الملف النهائي
-        actual_file = output_file
-        if not os.path.exists(actual_file) and os.path.exists(output_file + ".mp4"):
-            actual_file = output_file + ".mp4"
-
-        # رفع الفيديو
         bot.edit_message_text("📤 جاري رفع الفيديو إلى تيليجرام...", chat_id=message.chat.id, message_id=status_msg.message_id)
 
-        with open(actual_file, 'rb') as video_file:
+        with open(output_template, 'rb') as video_file:
             bot.send_video(message.chat.id, video_file)
 
-        # حذف رسالة الانتظار بنجاح تام
         bot.delete_message(message.chat.id, status_msg.message_id)
 
-        # تنظيف وحذف الملف بعد الإرسال الناجح
-        if os.path.exists(actual_file):
-            os.remove(actual_file)
-        if os.path.exists(output_file + ".part"):
-            os.remove(output_file + ".part")
-
     except Exception as e:
-        print(f"Error: {e}")
-        try:
-            bot.edit_message_text(f"❌ حدث خطأ أثناء التحميل، تأكد أن الرابط عام.", chat_id=message.chat.id, message_id=status_msg.message_id)
-        except:
-            pass
+        print(e)
+        bot.edit_message_text("❌ حدث خطأ أثناء التحميل، تأكد أن الرابط عام.", chat_id=message.chat.id, message_id=status_msg.message_id)
+
+    finally:
+        if os.path.exists(output_template):
+            os.remove(output_template)
 
 print("🤖 Python Bot is running...")
 bot.infinity_polling()
