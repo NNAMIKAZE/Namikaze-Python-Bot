@@ -13,13 +13,14 @@ def handle_youtube_link(message):
         bot.reply_to(message, "❌ عذراً، يرجى إرسال رابط يوتيوب صالح.")
         return
 
-    status_msg = bot.reply_to(message, "⏳ جاري التحميل بأعلى جودة...")
+    status_msg = bot.reply_to(message, "⏳ جاري التحميل...")
     
     output_template = f"video_{message.chat.id}.mp4"
     cookie_path = os.path.join(os.getcwd(), 'cookies.txt')
     
+    # استخدام الصيغة 18 المضمونة 100% والتي لا تحتاج لدمج
     ydl_opts = {
-        'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
+        'format': '18/b', 
         'outtmpl': output_template,
         'no_warnings': True,
         'cookiefile': cookie_path,
