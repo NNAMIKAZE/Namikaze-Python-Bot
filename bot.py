@@ -15,12 +15,11 @@ def handle_youtube_link(message):
     status_msg = bot.reply_to(message, "⏳ جاري التحميل...")
     
     output_template = f"video_{message.chat.id}.mp4"
-    
-    # تحديد مسار ملف الكوكيز بشكل دقيق حسب مسار التشغيل
     cookie_path = os.path.join(os.getcwd(), 'cookies.txt')
     
+    # الحل هنا: استخدام صيغة مدمجة جاهزة لا تحتاج لدمج أو ffmpeg
     ydl_opts = {
-        'format': 'best[ext=mp4]/best',
+        'format': 'b',
         'outtmpl': output_template,
         'no_warnings': True,
         'cookiefile': cookie_path,
@@ -51,8 +50,7 @@ def handle_youtube_link(message):
         error_details = str(e)
         print(f"CRITICAL ERROR: {error_details}")
         try:
-            # هنا التغيير: البوت راح يدزلك الخطأ البرمجي الحقيقي بالشات!
-            bot.edit_message_text(f"❌ الخطأ الحقيقي:\n{error_details[:150]}", chat_id=message.chat.id, message_id=status_msg.message_id)
+            bot.edit_message_text(f"❌ خطأ بالتحميل:\n{error_details[:100]}", chat_id=message.chat.id, message_id=status_msg.message_id)
         except:
             pass
 
