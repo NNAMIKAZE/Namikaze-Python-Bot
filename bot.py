@@ -16,10 +16,12 @@ def handle_youtube_link(message):
     
     output_template = f"video_{message.chat.id}.mp4"
     
+    # السر هنا: إضافة ملف الكوكيز حتى نتخطى حظر يوتيوب
     ydl_opts = {
         'format': 'best[ext=mp4]/best',
         'outtmpl': output_template,
         'no_warnings': True,
+        'cookiefile': 'cookies.txt',  # مسار ملف الكوكيز اللي رفعناه
         'http_headers': {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
         }
@@ -29,7 +31,6 @@ def handle_youtube_link(message):
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([url])
 
-        # التأكد من وجود الملف بأي صيغة تركها yt-dlp
         final_file = output_template
         if not os.path.exists(final_file):
             if os.path.exists(output_template + ".mp4"):
@@ -42,16 +43,15 @@ def handle_youtube_link(message):
 
         bot.delete_message(message.chat.id, status_msg.message_id)
 
-        # تنظيف الملفات
+        # تنظيف
         if os.path.exists(final_file):
             os.remove(final_file)
-        if os.path.exists(output_template + ".part"):
-            os.remove(output_template + ".part")
 
     except Exception as e:
         print(f"CRITICAL ERROR: {e}")
         try:
-            bot.edit_message_text(f"❌ حدث خطأ أثناء التحميل: {str(e)[:50]}", chat_id=message.chat.id, message_id=status_msg.message_id)
+            # رسالة خطأ مختصرة ونظيفة
+            bot.edit_message_text(f"❌ حدث خطأ أثناء التحميل أو الفيديو محظور.", chat_id=message.chat.id, message_id=status_msg.message_id)
         except:
             pass
 
