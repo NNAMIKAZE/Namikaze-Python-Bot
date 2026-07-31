@@ -20,6 +20,7 @@ def handle_youtube_link(message):
         'format': 'best[ext=mp4]/best',
         'outtmpl': output_template,
         'no_warnings': True,
+        'quiet': True,
     }
 
     try:
@@ -34,8 +35,11 @@ def handle_youtube_link(message):
         bot.delete_message(message.chat.id, status_msg.message_id)
 
     except Exception as e:
-        print(e)
-        bot.edit_message_text("❌ حدث خطأ أثناء التحميل، تأكد أن الرابط عام.", chat_id=message.chat.id, message_id=status_msg.message_id)
+        print(f"Error details: {e}")
+        try:
+            bot.edit_message_text(f"❌ حدث خطأ أثناء التحميل: {str(e)[:100]}", chat_id=message.chat.id, message_id=status_msg.message_id)
+        except Exception:
+            pass
 
     finally:
         if os.path.exists(output_template):
