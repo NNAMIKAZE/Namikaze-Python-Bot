@@ -14,7 +14,6 @@ def handle_youtube_link(message):
 
     status_msg = bot.reply_to(message, "⏳ جاري تحميل الفيديو عبر السيرفر...")
     
-    # استخدام المسار المطلق لضمان عدم ضياع الملفات على السيرفر
     download_dir = os.getcwd()
     output_template = os.path.join(download_dir, f"video_{message.chat.id}.mp4")
     
@@ -26,21 +25,23 @@ def handle_youtube_link(message):
     }
 
     try:
+        # مرحلة التحميل
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([url])
 
-        bot.edit_message_text("📤 جاري رفع الفيديو إلى تيليجرام...", chat_id=message.chat.id, message_id=status_msg.message_id)
-
-        # التأكد من وجود الملف قبل إرساله
+        # تحديد مكان الملف بدقة
         target_file = output_template
         if not os.path.exists(target_file):
-            # أحياناً yt-dlp يضيف امتداد إضافي لو تغير الصيغة
             if os.path.exists(output_template + ".mp4"):
                 target_file = output_template + ".mp4"
+
+        # مرحلة الرفع
+        bot.edit_message_text("📤 جاري رفع الفيديو إلى تيليجرام...", chat_id=message.chat.id, message_id=status_msg.message_id)
 
         with open(target_file, 'rb') as video_file:
             bot.send_video(message.chat.id, video_file)
 
+        # حذف رسالة الانتظار فقط إذا تمت الأمور بنجاح
         bot.delete_message(message.chat.id, status_msg.message_id)
 
     except Exception as e:
@@ -51,12 +52,15 @@ def handle_youtube_link(message):
             pass
 
     finally:
-        if os.path.exists(output_template):
-            os.remove(output_template)
-        if os.path.exists(output_template + ".mp4"):
-            os.remove(output_template + ".mp4")
-        if os.path.exists(output_template + ".part"):
-            os.remove(output_template + ".part")
+        # تنظيف الملفات المؤقتة بأمان بدون إحداث مشاكل
+        for ext in ["", ".mp4", ".part"]:
+            file_path = output_template + ext if ext else output_template
+            if ext == "" and os.path.exists(output_template):
+                try: os.remove(output_template)
+                except: pass
+            elif ext != "" and os.path.exists(output_template + ext):
+                try: os.remove(output_template + ext)
+                except: pass
 
 print("🤖 Python Bot is running...")
 bot.infinity_polling()
