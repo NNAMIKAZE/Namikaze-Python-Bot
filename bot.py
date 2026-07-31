@@ -12,16 +12,18 @@ def handle_youtube_link(message):
         bot.reply_to(message, "❌ عذراً، يرجى إرسال رابط يوتيوب صالح.")
         return
 
-    status_msg = bot.reply_to(message, "⏳ جاري تحميل الفيديو عبر السيرفر...")
+    status_msg = bot.reply_to(message, "⏳ جاري التحميل...")
     
     output_template = f"video_{message.chat.id}.mp4"
     
-    # السر هنا: إضافة ملف الكوكيز حتى نتخطى حظر يوتيوب
+    # تحديد مسار ملف الكوكيز بشكل دقيق حسب مسار التشغيل
+    cookie_path = os.path.join(os.getcwd(), 'cookies.txt')
+    
     ydl_opts = {
         'format': 'best[ext=mp4]/best',
         'outtmpl': output_template,
         'no_warnings': True,
-        'cookiefile': 'cookies.txt',  # مسار ملف الكوكيز اللي رفعناه
+        'cookiefile': cookie_path,
         'http_headers': {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
         }
@@ -32,26 +34,25 @@ def handle_youtube_link(message):
             ydl.download([url])
 
         final_file = output_template
-        if not os.path.exists(final_file):
-            if os.path.exists(output_template + ".mp4"):
-                final_file = output_template + ".mp4"
+        if not os.path.exists(final_file) and os.path.exists(output_template + ".mp4"):
+            final_file = output_template + ".mp4"
 
-        bot.edit_message_text("📤 جاري رفع الفيديو إلى تيليجرام...", chat_id=message.chat.id, message_id=status_msg.message_id)
+        bot.edit_message_text("📤 جاري الرفع...", chat_id=message.chat.id, message_id=status_msg.message_id)
 
         with open(final_file, 'rb') as video_file:
             bot.send_video(message.chat.id, video_file)
 
         bot.delete_message(message.chat.id, status_msg.message_id)
 
-        # تنظيف
         if os.path.exists(final_file):
             os.remove(final_file)
 
     except Exception as e:
-        print(f"CRITICAL ERROR: {e}")
+        error_details = str(e)
+        print(f"CRITICAL ERROR: {error_details}")
         try:
-            # رسالة خطأ مختصرة ونظيفة
-            bot.edit_message_text(f"❌ حدث خطأ أثناء التحميل أو الفيديو محظور.", chat_id=message.chat.id, message_id=status_msg.message_id)
+            # هنا التغيير: البوت راح يدزلك الخطأ البرمجي الحقيقي بالشات!
+            bot.edit_message_text(f"❌ الخطأ الحقيقي:\n{error_details[:150]}", chat_id=message.chat.id, message_id=status_msg.message_id)
         except:
             pass
 
