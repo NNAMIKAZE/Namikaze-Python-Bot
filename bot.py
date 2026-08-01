@@ -7,14 +7,13 @@ bot = telebot.TeleBot(TOKEN)
 
 @bot.message_handler(func=lambda message: True)
 def handle_youtube_link(message):
-    # 1. تنظيف الرابط من إضافات التتبع
     raw_url = message.text.split('?')[0] 
     
     if 'youtube.com' not in raw_url and 'youtu.be' not in raw_url:
         bot.reply_to(message, "❌ عذراً، يرجى إرسال رابط يوتيوب صالح.")
         return
 
-    # 2. خدعة تحويل رابط الـ Shorts إلى فيديو عادي لتجاوز الحظر
+    # خدعة تحويل رابط الـ Shorts إلى فيديو عادي
     if '/shorts/' in raw_url:
         video_id = raw_url.split('/shorts/')[1]
         final_url = f"https://www.youtube.com/watch?v={video_id}"
@@ -26,9 +25,9 @@ def handle_youtube_link(message):
     output_template = f"video_{message.chat.id}.mp4"
     cookie_path = os.path.join(os.getcwd(), 'cookies.txt')
     
-    # طلب أفضل صيغة مدمجة متوفرة
+    # الصيغة المرنة: تدمج أعلى جودة، وإذا فشلت تسحب أفضل ملف جاهز
     ydl_opts = {
-        'format': 'b', 
+        'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best', 
         'outtmpl': output_template,
         'no_warnings': True,
         'cookiefile': cookie_path,
@@ -39,7 +38,7 @@ def handle_youtube_link(message):
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([final_url]) # نستخدم الرابط المعدل هنا
+            ydl.download([final_url])
 
         final_file = output_template
         if not os.path.exists(final_file) and os.path.exists(output_template + ".mp4"):
